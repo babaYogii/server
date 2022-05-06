@@ -1,5 +1,6 @@
 const express= require('express');
 const path=require('path')
+const cookieParser = require('cookie-parser')
 
 
 require('dotenv').config()
@@ -8,6 +9,7 @@ require('./db/connection')
 
 const app=express();
 
+app.use(cookieParser())
 app.use(express.json());
 app.use(require('./router/auth'))
 
@@ -19,10 +21,7 @@ staticpath=path.join(__dirname,'../mernbackend/public');
 
 
 
-//  middleware=(req,res,next)=>{
-//     console.log('hello my middleware');
-//     next();
-// }
+
 
 
 

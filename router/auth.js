@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const authenticate = require('../middleWare/authenticate')
 
 
 require('../db/connection');
@@ -92,17 +93,19 @@ router.post('/signin', async (req,res)=>{
         const userlogin= await User.findOne({uemail:uemail});
     console.log(userlogin);
     const ismatch =await bcrypt.compare(upassword, userlogin.upassword);
+    console.log(ismatch);
 
     const token = await userlogin.generateAuthToken();
     
     res.cookie('jwtoken',token,{
-        expires:new Date(Date.now + 15892000000),
+        expires:new Date(Date.now + 158920),
         httpOnly:true
     })
 
  if(userlogin){
-    if(!ismatch)
+    if(!ismatch){
     res.json({message:"Check user id or password "})
+    }
     else{
         res.json({message:"Done loged in sucessfully"})
     }
@@ -117,7 +120,42 @@ router.post('/signin', async (req,res)=>{
     }
 })
 
+// About us
 
+router.get('/about',authenticate,(req,res)=>{
+    console.log('about page')
+    res.send(req.rootUser);
+})
+
+
+//data for contact and home
+
+router.get('/getData',authenticate,(req,res)=>{
+    console.log('contact page')
+    res.send(req.rootUser);
+})
+
+//contact us page
+router.post('/contact',authenticate,async(req,res)=>{
+    console.log(req)
+    try {
+       const {uemail,uname,umobile,umessage}=req.body;
+       if(!uemail ||!umessage||!uname||!umobile){
+           res.status(401).json({error:"please fill form"})
+       }
+       console.log(umessage);
+       const usercontact= await User.findOne({_id:req.rootID});
+
+       if(usercontact){
+           const usermessage=await usercontact.addMessage(uname,uemail,umessage,umobile);
+          await usercontact.save();
+          res.status(201).json({mesasge:"Message saved"})
+       }
+       
+    } catch (error) {
+        console.log(error)
+    }
+})
 module.exports=router;
 
 
